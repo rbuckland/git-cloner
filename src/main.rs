@@ -50,7 +50,6 @@ fn org_from_url(url: &Url) -> PathBuf {
         for ps in path_segments.iter().take(path_segments.len() - 1).skip(1) {
             org_path.push(ps);
         }
-
     }
     // subprojects on gitlab, style
     // normal projects on github.com
