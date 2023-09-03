@@ -12,6 +12,7 @@ fn parse_url(src: &str) -> Result<Url, ParseError> {
     Url::parse(src)
 }
 
+/// Command line options
 #[derive(StructOpt, Debug)]
 struct Args {
     #[structopt(short, long)]
@@ -23,19 +24,22 @@ struct Args {
     #[structopt(parse(try_from_str = parse_url))]
     url: Url,
 }
-
+/// assume the last option is the repo name
 fn repo_from_url(url: &Url) -> &str {
     url.path_segments().unwrap().last().unwrap_or_default()
 }
 
+// assumes the first element is the org (only supports one level right now)
 fn org_from_url(url: &Url) -> &str {
     url.path_segments().unwrap().next().unwrap_or_default()
 }
 
+/// the host portion of the URL
 fn hostname_from_url(url: &Url) -> &str {
     url.host_str().unwrap_or_default()
 }
 
+/// construct the path to clone to
 fn get_site_root_folder(workspace: &str, url: &Url) -> PathBuf {
     let workspace = shellexpand::tilde(workspace).to_string();
     let host = hostname_from_url(url);
