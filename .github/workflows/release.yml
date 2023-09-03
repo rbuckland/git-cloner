@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: pre-reqs
-        command: sudo apt install-y  gcc-multilib
+        run: sudo apt install-y  gcc-multilib
 
       - name: Checkout sources
         uses: actions/checkout@v2
