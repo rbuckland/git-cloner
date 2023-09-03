@@ -173,17 +173,7 @@ jobs:
           file: dist/*
           file_glob: true
           tag: ${{ steps.tagname.outputs.val }}
-          overwrite: true
-
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/mything
-          asset_name: mything
-          tag: ${{ github.ref }}
-          overwrite: true
-          body: "This is my release text"
-                    
+          overwrite: true 
 
       - name: Extract version
         id: extract-version
