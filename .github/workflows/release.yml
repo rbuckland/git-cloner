@@ -50,6 +50,7 @@ jobs:
         - build: aarch64-macos
           os: macos-latest
           rust: stable
+          cross: true
           target: aarch64-apple-darwin
         # - build: x86_64-win-gnu
         #   os: windows-2019
@@ -61,6 +62,9 @@ jobs:
         #   target: i686-pc-windows-msvc
 
     steps:
+      - name: pre-reqs
+        command: sudo apt install-y  gcc-multilib
+
       - name: Checkout sources
         uses: actions/checkout@v2
         with:
