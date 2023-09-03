@@ -1,16 +1,12 @@
 use anyhow::Result;
-use directories::UserDirs;
-use std::env;
-use std::ffi::OsStr;
 use std::fs;
-use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 use structopt::StructOpt;
 use url::ParseError;
 use url::Url;
 
-use std::io::{self, BufRead, BufReader};
+use std::io::{BufRead, BufReader};
 
 fn parse_url(src: &str) -> Result<Url, ParseError> {
     Url::parse(src)
@@ -33,7 +29,7 @@ fn repo_from_url(url: &Url) -> &str {
 }
 
 fn org_from_url(url: &Url) -> &str {
-    url.path_segments().unwrap().nth(0).unwrap_or_default()
+    url.path_segments().unwrap().next().unwrap_or_default()
 }
 
 fn hostname_from_url(url: &Url) -> &str {
