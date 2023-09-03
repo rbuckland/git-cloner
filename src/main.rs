@@ -26,12 +26,41 @@ struct Args {
 }
 /// assume the last option is the repo name
 fn repo_from_url(url: &Url) -> &str {
-    url.path_segments().unwrap().last().unwrap_or_default()
+    url.path_segments()
+        .unwrap()
+        .last()
+        .map(|segment| {
+            if let Some(stripped) = segment.strip_suffix(".git") {
+                stripped
+            } else {
+                segment
+            }
+        })
+        .unwrap_or_default()
 }
 
 // assumes the first element is the org (only supports one level right now)
-fn org_from_url(url: &Url) -> &str {
-    url.path_segments().unwrap().next().unwrap_or_default()
+fn org_from_url(url: &Url) -> PathBuf {
+    let path_segments: Vec<&str> = url.path_segments().unwrap().collect();
+    let mut org_path = PathBuf::new();
+
+    // bitbucket style
+    // Check if the root path starts with "scm" and has 3 or more segments
+    if path_segments.len() >= 3 && path_segments[0] == "scm" {
+        for ps in path_segments.iter().take(path_segments.len() - 1).skip(1) {
+            org_path.push(ps);
+        }
+
+    }
+    // subprojects on gitlab, style
+    // normal projects on github.com
+    else {
+        for ps in path_segments.iter().take(path_segments.len() - 1) {
+            org_path.push(ps);
+        }
+    }
+
+    org_path
 }
 
 /// the host portion of the URL

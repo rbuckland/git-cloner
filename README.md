@@ -28,7 +28,43 @@ Resolving deltas: 100% (160/160), done.
 `git-cloner` is a helper that takes a URL of a git repo, and clones it to your "project/workspace" directory, preserving the org/owner, or project name of the repository.
 
 * the folder is configured via `env var CLONER_WORKSPACE`
+   ```
+   export CLONER_WORKSPACE=$HOME/workspace
+   ```
 * defaults to ~/projects
+* Quckly cloning to a temporary folder is 
+  
+    ```
+    CLONER_WORKSPACE=/tmp/somefolder git cloner http://....
+    ```
+
+
+* Supports bitbucket style URLs (removes the leading `scm/`)
+    ```
+    » Cloning https://bitbucket.ihmc.us/scm/libs/log-tools.git → /home/username/bitbucket.ihmc.us/libs/log-tools
+    Cloning into 'log-tools'...
+    remote: Counting objects: 991, done.
+    remote: Compressing objects: 100% (765/765), done.
+    remote: Total 991 (delta 408), reused 0 (delta 0)
+    Receiving objects: 100% (991/991), 102.26 KiB | 200.00 KiB/s, done.
+    Resolving deltas: 100% (408/408), done.
+    » Cloned to /home/username/bitbucket.ihmc.us/libs/log-tools
+    ```
+
+* Supports nested gitlab style URLs
+
+    ```
+    » Cloning https://gitlab.com/some-group/special/sub-project/tool-a.git → /home/username/gitlab.com/some-group/special/sub-project/tool-a
+    Cloning into 'log-tools'...
+    remote: Counting objects: 991, done.
+    remote: Compressing objects: 100% (765/765), done.
+    remote: Total 991 (delta 408), reused 0 (delta 0)
+    Receiving objects: 100% (991/991), 102.26 KiB | 200.00 KiB/s, done.
+    Resolving deltas: 100% (408/408), done.
+    » Cloned to /home/username/gitlab.com/some-group/special/sub-project/tool-a
+    ```
+
+* Removes the .git extension if it is there
 
 ## CLI
 
