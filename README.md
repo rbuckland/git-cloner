@@ -1,9 +1,21 @@
 # git-cloner
 
+## Quick Install
+
+```bash
+curl -fsSL https://rbuckland.github.io/git-cloner/install.sh | bash
+```
+
+This will:
+- Install `git-cloner` to `~/.local/bin`
+- Copy tab completion giles to `~/.local/share/git-cloner`
+- Setup the `git cloner` alias in `git config --global`
+- Configure tab completion for bash/zsh
+
 ## TL;DR
 
 ```
-❯ git cloner https://github.com/inosion/madato             
+❯ git cloner https://github.com/inosion/madato
 » Cloning https://github.com/inosion/madato → /home/rbuckland/projects/github.com/inosion/madato
 Cloning into 'madato'...
 remote: Enumerating objects: 335, done.
@@ -15,6 +27,24 @@ Resolving deltas: 100% (160/160), done.
 » Cloned to /home/rbuckland/projects/github.com/inosion/madato
 ```
 
+The default folder for repo clones is `P
+
+### Smart Repository Inference
+
+When you're in a subdirectory of your projects folder, `git-cloner` can infer the organization:
+
+```bash
+# From: ~/projects/github.com/myorg/
+❯ git cloner my-repo
+» Cloning https://github.com/myorg/my-repo → ~/projects/github.com/myorg/my-repo
+
+# With tab completion!
+❯ git cloner <TAB>
+repo1  repo2  repo3  my-awesome-project  ...
+```
+
+## Manual Installation
+
 1. Copy the binary to ~/.local/bin
 2. Add the following alias to your `~/.gitconfig`
 
@@ -23,20 +53,49 @@ Resolving deltas: 100% (160/160), done.
     cloner = !~/.local/bin/git-cloner
     ```
 
+3. (Optional) Enable tab completion by sourcing the completion scripts:
+   - Bash: `source support/git-cloner-completion.bash`
+   - Zsh: `source support/git-cloner-completion.zsh`
+
 ## Details
 
 `git-cloner` is a helper that takes a URL of a git repo, and clones it to your "project/workspace" directory, preserving the org/owner, or project name of the repository.
+
+## Usage
+
+### Simple repo name (when in org directory)
+```bash
+cd ~/projects/github.com/myorg
+git cloner my-repo
+# Clones: https://github.com/myorg/my-repo
+```
+
+### Org/repo format
+```bash
+git cloner torvalds/linux
+# Clones: https://github.com/torvalds/linux → ~/projects/github.com/torvalds/linux
+```
+
+### Full URL
+```bash
+git cloner https://github.com/rust-lang/rust
+# Clones: https://github.com/rust-lang/rust → ~/projects/github.com/rust-lang/rust
+```
+
+## Configuration
 
 * the folder is configured via `env var CLONER_WORKSPACE`
    ```
    export CLONER_WORKSPACE=$HOME/workspace
    ```
 * defaults to ~/projects
-* Quckly cloning to a temporary folder is 
-  
+* Quickly cloning to a temporary folder:
+
     ```
-    CLONER_WORKSPACE=/tmp/somefolder git cloner http://....
+    CLONER_WORKSPACE=/tmp/somefolder git cloner https://...
     ```
+
+## Features
 
 
 * Supports bitbucket style URLs (removes the leading `scm/`)
@@ -75,7 +134,7 @@ USAGE:
     git-cloner [FLAGS] [OPTIONS] <url>
 
 FLAGS:
-    -d, --dry-run    
+    -d, --dry-run
     -h, --help       Prints help information
     -V, --version    Prints version information
 

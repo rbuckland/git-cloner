@@ -5,10 +5,8 @@ edition = "2021"
 license = "Apache-2.0"
 categories = ["command-line-utilities", "development-tools"]
 authors = ["Ramon Buckland <ramon@thebuckland.com>"]
-description = "Clone a git repository to WORKDIR/<site>/<org>/<repo>"
+description = "Clone a git repository to WORKDIR/<site>/<org>/<repo>" automatically with TAB completion.
 documentation = "https://github.com/rbuckland/git-cloner"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 structopt = "0.3"
@@ -16,3 +14,6 @@ url = "2.1"
 shellexpand = "2.0"
 directories = "5.0.1"
 anyhow = "1.0.75"
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

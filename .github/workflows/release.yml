@@ -228,3 +228,29 @@ jobs:
       #  env:
       #    CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
+  publish-gh-pages:
+    name: Publish to GitHub Pages
+    needs: [dist]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare docs directory
+        run: |
+          mkdir -p docs
+          cp install.sh docs/
+          cp README.md docs/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
