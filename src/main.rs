@@ -20,7 +20,8 @@ fn infer_host_org_from_cwd(workspace: &str) -> Option<(String, String)> {
 
     // Check if current directory is under the workspace
     if let Ok(relative) = cwd.strip_prefix(workspace_path) {
-        let components: Vec<_> = relative.components()
+        let components: Vec<_> = relative
+            .components()
             .map(|c| c.as_os_str().to_string_lossy().to_string())
             .collect();
 
@@ -157,11 +158,9 @@ fn get_site_root_folder(workspace: &str, url: &Url) -> PathBuf {
 //     // debug the response
 //     println!("Response: {:?}", res);
 
-
 //     if !res.is_array() {
 //         return Err(anyhow::anyhow!("Unexpected response format from GitHub API"));
 //     }
-
 
 //     let mut repos = Vec::new();
 //     if let Some(arr) = res.as_array() {
@@ -274,6 +273,7 @@ fn main() -> anyhow::Result<()> {
             } else {
                 eprintln!("Could not infer host/org from CWD");
             }
-            return Ok(());        }
+            return Ok(());
+        }
     }
 }

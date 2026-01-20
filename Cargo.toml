@@ -5,7 +5,7 @@ edition = "2021"
 license = "Apache-2.0"
 categories = ["command-line-utilities", "development-tools"]
 authors = ["Ramon Buckland <ramon@thebuckland.com>"]
-description = "Clone a git repository to WORKDIR/<site>/<org>/<repo>" automatically with TAB completion.
+description = "Clone a git repository to WORKDIR/<site>/<org>/<repo> automatically with TAB completion."
 documentation = "https://github.com/rbuckland/git-cloner"
 
 [dependencies]
