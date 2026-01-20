@@ -93,7 +93,7 @@ struct Args {
 fn repo_from_url(url: &Url) -> &str {
     url.path_segments()
         .unwrap()
-        .last()
+        .next_back()
         .map(|segment| {
             if let Some(stripped) = segment.strip_suffix(".git") {
                 stripped
@@ -235,7 +235,7 @@ fn main() -> anyhow::Result<()> {
                 let mut cmd = Command::new("git")
                     .arg("clone")
                     .arg("--progress")
-                    .arg(&url.as_str())
+                    .arg(url.as_str())
                     .current_dir(&folder)
                     .stdout(Stdio::piped())
                     .spawn()?;
@@ -273,7 +273,7 @@ fn main() -> anyhow::Result<()> {
             } else {
                 eprintln!("Could not infer host/org from CWD");
             }
-            return Ok(());
+            Ok(())
         }
     }
 }
