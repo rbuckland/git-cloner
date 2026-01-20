@@ -66,7 +66,7 @@ jobs:
       #   run: sudo apt install -y  gcc-multilib
 
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -126,11 +126,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: false
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         # with:
         #   path: dist
       # - run: ls -al ./dist
@@ -181,7 +181,7 @@ jobs:
           file: dist/*
           file_glob: true
           tag: ${{ steps.tagname.outputs.val }}
-          overwrite: true 
+          overwrite: true
 
       - name: Extract version
         id: extract-version
@@ -212,7 +212,7 @@ jobs:
         #   end
         # end
 
-      
+
       # Uncomment this section if you want to release your package to crates.io
       # Before publishing, make sure you have filled out the following fields:
       # license or license-file, description, homepage, documentation, repository, readme.
