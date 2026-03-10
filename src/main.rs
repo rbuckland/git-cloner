@@ -93,7 +93,10 @@ fn parse_command_line_repo(src: &str) -> Result<Url, ParseError> {
 
 /// Command line options
 #[derive(StructOpt, Debug)]
-#[structopt(name = "git-cloner", about = "Clone git repositories into organized workspace")]
+#[structopt(
+    name = "git-cloner",
+    about = "Clone git repositories into organized workspace"
+)]
 struct Args {
     /// Enable completion mode - list repositories in the current org
     #[structopt(long)]
