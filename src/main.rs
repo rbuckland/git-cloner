@@ -12,6 +12,28 @@ fn get_default_workspace() -> String {
     std::env::var("CLONER_WORKSPACE").unwrap_or_else(|_| "~/projects".to_string())
 }
 
+fn infer_host_from_cwd(workspace: &str) -> Option<String> {
+    let cwd = std::env::current_dir().ok()?;
+
+    let workspace_expanded = shellexpand::tilde(workspace).to_string();
+    let workspace_path = Path::new(&workspace_expanded);
+
+    // Check if current directory is under the workspace
+    if let Ok(relative) = cwd.strip_prefix(workspace_path) {
+        let components: Vec<_> = relative
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().to_string())
+            .collect();
+
+        // Return host if we have at least one component
+        if !components.is_empty() {
+            return Some(components[0].clone());
+        }
+    }
+
+    None
+}
+
 fn infer_host_org_from_cwd(workspace: &str) -> Option<(String, String)> {
     let cwd = std::env::current_dir().ok()?;
 
@@ -57,6 +79,12 @@ fn parse_command_line_repo(src: &str) -> Result<Url, ParseError> {
             let url_string = format!("https://{}/{}", host, src);
             return Url::parse(&url_string);
         }
+    } else if src.split('/').count() == 2 {
+        // If we can't infer host/org, but we have org/repo format, try to infer just the host
+        if let Some(host) = infer_host_from_cwd(&workspace) {
+            let url_string = format!("https://{}/{}", host, src);
+            return Url::parse(&url_string);
+        }
     }
 
     // Try as-is
@@ -65,28 +93,27 @@ fn parse_command_line_repo(src: &str) -> Result<Url, ParseError> {
 
 /// Command line options
 #[derive(StructOpt, Debug)]
-enum CLICommand {
-    Clone {
-        #[structopt(short, long)]
-        dry_run: bool,
-
-        #[structopt(long, default_value = "~/projects", env = "CLONER_WORKSPACE")]
-        workspace: String,
-
-        #[structopt(parse(try_from_str = parse_command_line_repo))]
-        url: Url,
-    },
-
-    Complete {
-        #[structopt(long, default_value = "~/projects", env = "CLONER_WORKSPACE")]
-        workspace: String,
-    },
-}
-
-#[derive(StructOpt, Debug)]
+#[structopt(name = "git-cloner", about = "Clone git repositories into organized workspace")]
 struct Args {
-    #[structopt(subcommand)]
-    cmd: CLICommand,
+    /// Enable completion mode - list repositories in the current org
+    #[structopt(long)]
+    complete: bool,
+
+    /// Clone a repository (default behavior)
+    #[structopt(long)]
+    clone: bool,
+
+    /// Dry run - show what would be done without executing
+    #[structopt(short, long)]
+    dry_run: bool,
+
+    /// Workspace root directory
+    #[structopt(long, default_value = "~/projects", env = "CLONER_WORKSPACE")]
+    workspace: String,
+
+    /// Repository URL, org/repo, or repo name
+    #[structopt(parse(try_from_str = parse_command_line_repo))]
+    url: Option<Url>,
 }
 
 /// assume the last option is the repo name
@@ -212,68 +239,74 @@ fn list_github_org_repos_gh_cli(org: &str) -> Result<Vec<String>> {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::from_args();
-    match args.cmd {
-        CLICommand::Clone {
-            dry_run,
-            workspace,
-            url,
-        } => {
-            let folder = get_site_root_folder(&workspace, &url);
 
-            let full_path = &folder.clone().join(repo_from_url(&url));
+    // Handle completion mode
+    if args.complete {
+        if let Some((host, org)) = infer_host_org_from_cwd(&args.workspace) {
+            if host == "github.com" {
+                let repos = list_github_org_repos_gh_cli(&org)?;
+                for repo in repos {
+                    println!("{}", repo);
+                }
+            } else {
+                eprintln!("Completion only supported for github.com orgs");
+            }
+        } else {
+            eprintln!("Could not infer host/org from CWD");
+        }
+        return Ok(());
+    }
+
+    // Handle clone mode (default)
+    let url = args.url.unwrap_or_else(|| {
+        eprintln!("error: No repository URL provided");
+        eprintln!();
+        eprintln!("USAGE:");
+        eprintln!("    git-cloner <repo-url>");
+        eprintln!("    git-cloner --complete");
+        eprintln!();
+        eprintln!("For more information try --help");
+        process::exit(1);
+    });
+
+    let folder = get_site_root_folder(&args.workspace, &url);
+    let full_path = &folder.clone().join(repo_from_url(&url));
+
+    println!(
+        "» Cloning {} → {}",
+        &url,
+        &full_path.clone().into_os_string().into_string().unwrap()
+    );
+
+    if args.dry_run {
+        println!("» mkdir -p {:?}", &folder);
+        println!("» git clone {}", &url);
+    } else {
+        fs::create_dir_all(&folder).expect("!! Failed to create directories");
+        let mut cmd = Command::new("git")
+            .arg("clone")
+            .arg("--progress")
+            .arg(url.as_str())
+            .current_dir(&folder)
+            .stdout(Stdio::piped())
+            .spawn()?;
+
+        let stdout = cmd.stdout.take().expect("Failed to open stdout");
+        let reader = BufReader::new(stdout);
+
+        for line in reader.lines() {
+            println!("{}", line?);
+        }
+
+        let status = cmd.wait()?;
+        if status.success() {
             println!(
-                "» Cloning {} → {}",
-                &url,
+                "» Cloned to {}",
                 &full_path.clone().into_os_string().into_string().unwrap()
             );
-
-            if dry_run {
-                println!("» mkdir -p {:?}", &folder);
-                println!("» git clone {}", &url);
-            } else {
-                fs::create_dir_all(&folder).expect("!! Failed to create directories");
-                let mut cmd = Command::new("git")
-                    .arg("clone")
-                    .arg("--progress")
-                    .arg(url.as_str())
-                    .current_dir(&folder)
-                    .stdout(Stdio::piped())
-                    .spawn()?;
-
-                let stdout = cmd.stdout.take().expect("Failed to open stdout");
-
-                let reader = BufReader::new(stdout);
-
-                for line in reader.lines() {
-                    println!("{}", line?);
-                }
-
-                let status = cmd.wait()?;
-                if status.success() {
-                    println!(
-                        "» Cloned to {}",
-                        &full_path.clone().into_os_string().into_string().unwrap()
-                    );
-                }
-                process::exit(status.code().unwrap_or(1));
-            };
-
-            Ok(())
         }
-        CLICommand::Complete { workspace } => {
-            if let Some((host, org)) = infer_host_org_from_cwd(&workspace) {
-                if host == "github.com" {
-                    let repos = list_github_org_repos_gh_cli(&org)?;
-                    for repo in repos {
-                        println!("{}", repo);
-                    }
-                } else {
-                    eprintln!("Completion only supported for github.com orgs");
-                }
-            } else {
-                eprintln!("Could not infer host/org from CWD");
-            }
-            Ok(())
-        }
+        process::exit(status.code().unwrap_or(1));
     }
+
+    Ok(())
 }

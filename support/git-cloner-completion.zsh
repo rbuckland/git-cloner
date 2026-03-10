@@ -2,7 +2,7 @@
 
 _git_cloner() {
   local -a repos
-  repos=("${(@f)$(git-cloner complete 2>/dev/null)}")
+  repos=("${(@f)$(git-cloner --complete 2>/dev/null)}")
   _describe 'repositories' repos
 }
 

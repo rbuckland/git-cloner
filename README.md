@@ -1,5 +1,24 @@
 # git-cloner
 
+An opinionated git-clone helper, which keeps all cloned repos' where they came from
+
+```
+~/projects/github.com
+             myorg/some-repo
+          /gitlab.com
+             my-group/sub-group/repo
+```
+
+via
+```
+git cloner <TAB>    # auto complete upstream repos
+git cloner org/repo # if in github.com/ folder
+git cloner repo     # if in github.com/org folder
+git cloner <URL>    # from anywhere, but puts it in ~/projects/<site>/<org>/.../<repo>
+```
+
+**~/projects** is configurable.
+
 ## Quick Install
 
 ```bash
@@ -27,20 +46,29 @@ Resolving deltas: 100% (160/160), done.
 » Cloned to /home/rbuckland/projects/github.com/inosion/madato
 ```
 
-The default folder for repo clones is `P
+The default folder for repo clones is `CLONER_WORKSPACE=~/projects`
 
 ### Smart Repository Inference
 
-When you're in a subdirectory of your projects folder, `git-cloner` can infer the organization:
+When you're in a subdirectory of your projects folder, `git-cloner` can infer the organisation:
 
 ```bash
 # From: ~/projects/github.com/myorg/
 ❯ git cloner my-repo
 » Cloning https://github.com/myorg/my-repo → ~/projects/github.com/myorg/my-repo
 
-# With tab completion!
+# From: ~/projects/github.com
+❯ git cloner torvalds/linux
+» Cloning https://github.com/torvalds/linux → ~/projects/github.com/torvalds/linux
+
+# With tab completion! From: ~/projects/github.com/myorg/
 ❯ git cloner <TAB>
 repo1  repo2  repo3  my-awesome-project  ...
+
+
+# Full URL
+git cloner https://github.com/rust-lang/rust
+# Clones: https://github.com/rust-lang/rust → ~/projects/github.com/rust-lang/rust
 ```
 
 ## Manual Installation
@@ -60,27 +88,6 @@ repo1  repo2  repo3  my-awesome-project  ...
 ## Details
 
 `git-cloner` is a helper that takes a URL of a git repo, and clones it to your "project/workspace" directory, preserving the org/owner, or project name of the repository.
-
-## Usage
-
-### Simple repo name (when in org directory)
-```bash
-cd ~/projects/github.com/myorg
-git cloner my-repo
-# Clones: https://github.com/myorg/my-repo
-```
-
-### Org/repo format
-```bash
-git cloner torvalds/linux
-# Clones: https://github.com/torvalds/linux → ~/projects/github.com/torvalds/linux
-```
-
-### Full URL
-```bash
-git cloner https://github.com/rust-lang/rust
-# Clones: https://github.com/rust-lang/rust → ~/projects/github.com/rust-lang/rust
-```
 
 ## Configuration
 
@@ -110,6 +117,8 @@ git cloner https://github.com/rust-lang/rust
     » Cloned to /home/username/bitbucket.ihmc.us/libs/log-tools
     ```
 
+* Supports github.com, gitlab.com
+
 * Supports nested gitlab style URLs
 
     ```
@@ -128,21 +137,26 @@ git cloner https://github.com/rust-lang/rust
 ## CLI
 
 ```
-git-cloner 0.1.0
+git-cloner 0.2.2
+Clone git repositories into organized workspace
 
 USAGE:
-    git-cloner [FLAGS] [OPTIONS] <url>
+    git-cloner [FLAGS] [OPTIONS] [url]
 
 FLAGS:
-    -d, --dry-run
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+        --clone       Clone a repository (default behavior)
+        --complete    Enable completion mode - list repositories in the current org
+    -d, --dry-run     Dry run - show what would be done without executing
+    -h, --help        Prints help information
+    -V, --version     Prints version information
 
 OPTIONS:
-        --workspace <workspace>     [env: CLONER_WORKSPACE=]  [default: ~/projects]
+        --workspace <workspace>    Workspace root directory [env: CLONER_WORKSPACE=/Users/ramonbuckland/projects]
+                                   [default: ~/projects]
 
 ARGS:
-    <url>
+    <url>    Repository URL, org/repo, or repo name
+
 ```
 
 ## Appendix
